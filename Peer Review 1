@@ -1,0 +1,146 @@
+---
+title: "Peer Review 1"
+author: "Secular"
+date: "Sunday, July 19, 2015"
+output: html_document
+---
+
+I will be presenting the first Peer Evaluation for the Reproducible Research course from John's Hopkins University.
+
+First it will read in the contents of the of the Activity.csv file.  Which will be which will be followed by several data cleanup steps to prepare the data for analysis
+
+*   Conevrt the interval variable to "minutes from midnight"
+*   Convert dates to standard dates
+*   Next create a new dataframe which is corrected for NAs.  
+**   In order to do that we first determine average or mean steps taken in each time interval using the data present to the closest integer.  
+**   Then generate a copy of the original dataframe NAs are repaced by the average steps for the corresponing interval  
+**  Also append a new column to the dataframe to which shows if the date is a weekday (= TRUE), or weekend day (= FALSE)
+*   Next the original data frame is split by dates and the stats (median, Mean, & total) of activity for each day will be computed
+*   The stats for the activity data with the NAs filled is then computed, as in the above step
+*   The activity data with NAs filled in is split into weekday & weekend data frames
+
+```{r echo = TRUE}
+library(timeDate)
+library(graphics)
+activity <- read.csv("activity.csv")
+
+#  Converting interval into minutes from midnight
+activity$minsFromMidnight <- activity$interval%%100 + + as.integer(activity$interval/100)*60 
+
+#   Converting the date into standard date format
+activity$date = as.factor(as.Date(as.character(activity$date), "%m/%d/%Y"))
+
+#   Duplicating the data with the NAs substituted with the average for the corresponding interval
+activitySansNAs <-  activity
+activitySansNAsSplitbyInterval <- split(activitySansNAs, activitySansNAs$interval)
+
+#   Computed the average steps for each interval
+meanByInterval <- sapply(activitySansNAsSplitbyInterval, function(x){mean = floor(mean(x$steps,na.rm = TRUE) + 0.5)})
+
+#   Replacing NAs
+for(n in 1:nrow(activitySansNAs)){ if (is.na(activitySansNAs[n, "steps"])){ activitySansNAs[n, "steps"] <- meanByInterval[as.character(activitySansNAs[n,"interval"])]}}
+
+#   Determining the weekday/weekend day from the date
+activitySansNAs$isItWeekday <- isWeekday(activitySansNAs$date)
+
+
+
+
+```
+
+#    Start of Computations for presentation
+##      What is mean total number of steps taken per day?
+
+```{r echo = TRUE}
+
+#   Splitting the original data by date and then computing the statistics
+activityByDay <- split(activity, activity$date)
+statsActivityByDate <- sapply(activityByDay, function(x){
+  c(median = median(x$steps, na.rm = TRUE), 
+    mean = mean(x$steps, na.rm = TRUE), 
+    total = sum(x$steps, na.rm  = TRUE))
+})
+
+
+#   Transposing the matrix
+statsActivityByDate <- t(statsActivityByDate)
+class(statsActivityByDate)
+colnames(statsActivityByDate)
+
+hist(statsActivityByDate[ , 3], xlab = " Total Steps Taken by Day", main = " Histogram of Total Steps Taken Each Day")
+statsActivityByDate
+```
+
+##   What is the average daily activity pattern?
+
+```{r echo = TRUE}
+
+#   Splitting the original by timeinterval
+activityByInterval <- split(activity, activity$interval)
+meansActivitybyInerval <- sapply(activityByInterval, function(x) {c(interval = x$interva[1], minsFromMidnight = x$minsFromMidnight[1], mean = mean(x$steps, na.rm = TRUE))})
+meansActivitybyInerval <- t(meansActivitybyInerval)
+meansActivitybyInerval <- as.data.frame(meansActivitybyInerval)
+plot(meansActivitybyInerval$interval, meansActivitybyInerval$mea, type = "l", ylab = "Average Steps Taken in an interval", xlab = "Interval", main = "Average Number of Steps Vs. Interval")
+
+
+```
+
+##  Plots reports with missing values imputed
+
+One notices that the means do not change significantly at all.  The median appears to skew where the originally data was not present.  Else very little changes.
+
+
+```{r echo = TRUE}
+#   Splitting the NAs filled data by date and then computing the statistics
+activityByDaySansNAs <- split(activitySansNAs , activitySansNAs $date)
+statsActivityBydateSansNAs  <- sapply(activityByDaySansNAs , function(x){
+  c(median = median(x$steps, na.rm = TRUE), 
+    mean = mean(x$steps, na.rm = TRUE), 
+    total = sum(x$steps, na.rm = TRUE))
+})
+statsActivityBydateSansNAs  <- t(statsActivityBydateSansNAs )
+
+
+hist(statsActivityBydateSansNAs[ , 3], xlab = " Total Steps Taken by Day", main = " Histogram of Total Steps Taken Each Day With NAs Imputed")
+statsActivityBydateSansNAs[ , 1:2]
+
+```
+
+##   Are there differences in activity patterns between weekdays and weekends?
+
+```{r echo = TRUE}
+#   Split the NAs filled in data frame by weekday & weekend days.
+activitySansNAsByWeekdayWeekend <- split(activitySansNAs, activitySansNAs$isItWeekday)
+names(activitySansNAsByWeekdayWeekend) <- c("WeekEnd","WeekDay")
+
+#   Then computing the means for both the split data sub-sets per interval 
+activitySansNAsByForWeekend <- split(activitySansNAsByWeekdayWeekend[["WeekEnd"]], activitySansNAsByWeekdayWeekend[["WeekEnd"]]$interval)
+
+activitySansNAsByForWeekday <- split(activitySansNAsByWeekdayWeekend[["WeekDay"]], activitySansNAsByWeekdayWeekend[["WeekDay"]]$interval)
+
+weekendMeansByInterval <- sapply(activitySansNAsByForWeekend, function (x) { weekendMeans = mean(x$steps)})
+weekdayMeansByInterval <- sapply(activitySansNAsByForWeekday, function (x) { weekendMeans = mean(x$steps)})
+
+
+
+#   Cbind the various column to create amatix of means for week & weekend days
+averageStepsByinterval <- cbind(unique(activitySansNAs$interval), unique(activitySansNAs$minsFromMidnight), 
+                               weekdayMeansByInterval, weekendMeansByInterval)
+colnames(averageStepsByinterval)[1:2] <- c("interval", "minsFromMdinight")
+
+
+quantile(weekdayMeansByInterval)
+quantile(weekendMeansByInterval)
+
+
+old.par <- par(mfrow = c(2,1))
+windows.options(width=10, height=10)
+
+plot(averageStepsByinterval[ , 1], averageStepsByinterval[ , 3], type = "l", xlab = "Interval", ylab = "WeekDay Steps", main = "Comparison Plots Between Weekday/WeekEnd Workouts")
+
+plot(averageStepsByinterval[ , 1], averageStepsByinterval [ , 4], type = "l", xlab = "Interval", ylab = "WeekEnd Steps")
+
+
+
+```
+
