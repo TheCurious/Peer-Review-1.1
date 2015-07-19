@@ -276,6 +276,7 @@ hist(statsActivityBydateSansNAs[ , 3], xlab = &quot; Total Steps Taken by Day&qu
 </div>
 <div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
+<p>Early in the day the activity between the weekdays and weekends is apparently quite low. However, while the times of highest activity (between 8Am to 10 AM) is about the same between the weekdays &amp; weekend, the weekday activit pronouncedly more on weekdays than on weekend days. Rest of the is again about the same from 10 AM.</p>
 <pre class="r"><code>#   Split the NAs filled in data frame by weekday &amp; weekend days.
 activitySansNAsByWeekdayWeekend &lt;- split(activitySansNAs, activitySansNAs$isItWeekday)
 names(activitySansNAsByWeekdayWeekend) &lt;- c(&quot;WeekEnd&quot;,&quot;WeekDay&quot;)
@@ -296,13 +297,7 @@ averageStepsByinterval &lt;- cbind(unique(activitySansNAs$interval), unique(acti
 colnames(averageStepsByinterval)[1:2] &lt;- c(&quot;interval&quot;, &quot;minsFromMdinight&quot;)
 
 
-quantile(weekdayMeansByInterval)</code></pre>
-<pre><code>##         0%        25%        50%        75%       100% 
-##   0.000000   2.288889  25.811111  50.805556 230.355556</code></pre>
-<pre class="r"><code>quantile(weekendMeansByInterval)</code></pre>
-<pre><code>##         0%        25%        50%        75%       100% 
-##   0.000000   1.234375  32.312500  74.609375 166.625000</code></pre>
-<pre class="r"><code>old.par &lt;- par(mfrow = c(2,1))
+old.par &lt;- par(mfrow = c(2,1))
 windows.options(width=10, height=10)
 
 plot(averageStepsByinterval[ , 1], averageStepsByinterval[ , 3], type = &quot;l&quot;, xlab = &quot;Interval&quot;, ylab = &quot;WeekDay Steps&quot;, main = &quot;Comparison Plots Between Weekday/WeekEnd Workouts&quot;)
