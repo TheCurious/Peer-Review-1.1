@@ -1,4 +1,4 @@
----
+----
 title: "Peer Review 1"
 author: "Secular"
 date: "Sunday, July 19, 2015"
@@ -108,6 +108,8 @@ statsActivityBydateSansNAs[ , 1:2]
 
 ##   Are there differences in activity patterns between weekdays and weekends?
 
+Early in the day the activity between the weekdays and weekends is apparently quite low.  However, while the times of highest activity (between 8Am to 10 AM) is about the same between the weekdays & weekend, the weekday activit pronouncedly more on weekdays than on weekend days.  Rest of the is again about the same from 10 AM.
+
 ```{r echo = TRUE}
 #   Split the NAs filled in data frame by weekday & weekend days.
 activitySansNAsByWeekdayWeekend <- split(activitySansNAs, activitySansNAs$isItWeekday)
@@ -129,10 +131,6 @@ averageStepsByinterval <- cbind(unique(activitySansNAs$interval), unique(activit
 colnames(averageStepsByinterval)[1:2] <- c("interval", "minsFromMdinight")
 
 
-quantile(weekdayMeansByInterval)
-quantile(weekendMeansByInterval)
-
-
 old.par <- par(mfrow = c(2,1))
 windows.options(width=10, height=10)
 
@@ -143,4 +141,6 @@ plot(averageStepsByinterval[ , 1], averageStepsByinterval [ , 4], type = "l", xl
 
 
 ```
+
+
 
